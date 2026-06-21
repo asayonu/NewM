@@ -15,7 +15,7 @@ export default function Home() {
           href="/ukeire"
           className="mt-4 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
         >
-          受け入れカメラ（14枚スキャン） →
+          受け入れ計算（14枚入力） →
         </a>
       </header>
 
