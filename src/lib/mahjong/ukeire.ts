@@ -1,5 +1,5 @@
 import { RuleSet, tilesToHand } from "mahjong-tile-efficiency";
-import type { TileId } from "./tiles";
+import { ALL_TILES, isTileId, tileLabel, type TileId } from "./tiles";
 
 type UkeireMap = Record<string, number>;
 
@@ -15,6 +15,11 @@ export type HandAnalysis = {
   /** 向聴を戻さない切り牌のみ */
   options: DiscardOption[];
   best: DiscardOption | null;
+};
+
+export type UkeireEntry = {
+  tile: TileId;
+  count: number;
 };
 
 function sumUkeire(map: UkeireMap): number {
@@ -71,8 +76,21 @@ export function analyzeFourteen(tiles: TileId[]): HandAnalysis {
   };
 }
 
+/** 受け入れ牌を牌種順に並べる */
+export function ukeireEntries(ukeire: UkeireMap): UkeireEntry[] {
+  const entries: UkeireEntry[] = [];
+  for (const [tile, count] of Object.entries(ukeire)) {
+    if (isTileId(tile)) {
+      entries.push({ tile, count });
+    }
+  }
+  return entries.sort(
+    (a, b) => ALL_TILES.indexOf(a.tile) - ALL_TILES.indexOf(b.tile),
+  );
+}
+
 export function formatUkeireList(ukeire: UkeireMap): string {
-  return Object.entries(ukeire)
-    .map(([t, n]) => `${t}×${n}`)
+  return ukeireEntries(ukeire)
+    .map(({ tile, count }) => `${tileLabel(tile)}×${count}`)
     .join(" ");
 }

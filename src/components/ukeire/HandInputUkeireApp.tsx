@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   analyzeFourteen,
-  formatUkeireList,
   type HandAnalysis,
 } from "@/lib/mahjong/ukeire";
 import { tileLabel, type TileId } from "@/lib/mahjong/tiles";
 import MahjongTile from "./MahjongTile";
 import TilePalette from "./TilePalette";
+import UkeireTileList from "./UkeireTileList";
 
 const HAND_SIZE = 14;
 
@@ -140,9 +140,10 @@ export default function HandInputUkeireApp() {
             <p className="mt-2 text-xs text-stone-600">
               向聴 {analysis.shanten} → 切後 {analysis.best.shantenAfterDiscard}
             </p>
-            <p className="mt-1 break-all text-[11px] text-stone-500">
-              {formatUkeireList(analysis.best.ukeire)}
-            </p>
+            <div className="mt-2">
+              <p className="mb-1 text-[11px] font-medium text-stone-500">待ち</p>
+              <UkeireTileList ukeire={analysis.best.ukeire} />
+            </div>
           </div>
         ) : hand.length === HAND_SIZE ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
