@@ -36,7 +36,11 @@ function PinCircles({ n }: { n: number }) {
     7: [
       [28, 26], [50, 26], [72, 26],
       [50, 50],
+<<<<<<< HEAD
       [28, 74], [50, 74], [72, 74],
+=======
+      [28, 50], [50, 74], [72, 74],
+>>>>>>> 5681e8f7 (初めてのコミット)
     ],
     8: [[32, 26], [68, 26], [32, 44], [68, 44], [32, 62], [68, 62], [32, 80], [68, 80]],
     9: [
@@ -45,7 +49,10 @@ function PinCircles({ n }: { n: number }) {
       [28, 74], [50, 74], [72, 74],
     ],
   };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5681e8f7 (初めてのコミット)
   const pts = positions[n] ?? positions[1];
   const r = n === 1 ? 16 : n <= 4 ? 9 : 7.5;
 
@@ -240,7 +247,11 @@ export default function MahjongTile({
 
   const boxStyle =
     size === "fill"
+<<<<<<< HEAD
       ? { width: "100%", height: "100%", minWidth: 24, minHeight: 32 }
+=======
+      ? { width: "100%", height: "100%" }
+>>>>>>> 5681e8f7 (初めてのコミット)
       : { width: SIZE_PX[size].w, height: SIZE_PX[size].h };
 
   return (

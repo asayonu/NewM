@@ -60,7 +60,11 @@ export default function HandInputUkeireApp() {
   return (
     <div className="flex min-h-dvh flex-col bg-stone-100 pt-12">
       {/* 手牌エリア（常に表示） */}
+<<<<<<< HEAD
       <section className="shrink-0 border-b border-stone-200 bg-white px-4 py-3">
+=======
+      <section className="shrink-0 border-b border-stone-200 bg-white px-2 py-3 sm:px-4">
+>>>>>>> 5681e8f7 (初めてのコミット)
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-stone-600">
             手牌{" "}
@@ -88,6 +92,7 @@ export default function HandInputUkeireApp() {
           </div>
         </div>
 
+<<<<<<< HEAD
         <div className="overflow-x-auto pb-1">
           <div className="flex min-h-16 min-w-min items-end gap-1 rounded-xl border border-stone-200 bg-stone-50 p-2">
             {hand.map((tile, index) => {
@@ -118,6 +123,39 @@ export default function HandInputUkeireApp() {
               />
             ))}
           </div>
+=======
+        <div
+          className="grid w-full gap-0.5 rounded-xl border border-stone-200 bg-stone-50 p-1.5 sm:gap-1 sm:p-2"
+          style={{ gridTemplateColumns: `repeat(${HAND_SIZE}, minmax(0, 1fr))` }}
+        >
+          {hand.map((tile, index) => {
+            const isBest = isBestDiscard(tile, index);
+            return (
+              <div key={`${tile}-${index}`} className="relative min-w-0">
+                {isBest && (
+                  <span className="absolute -top-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-600 px-1 py-px text-[8px] font-bold leading-tight text-white shadow sm:-top-5 sm:px-2 sm:py-0.5 sm:text-[10px]">
+                    切る
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAt(index)}
+                  className="block aspect-[3/4] w-full rounded-md transition hover:ring-2 hover:ring-stone-300 active:scale-95"
+                  aria-label={`${tileLabel(tile)}を削除`}
+                >
+                  <MahjongTile tile={tile} size="fill" highlight={isBest} />
+                </button>
+              </div>
+            );
+          })}
+          {emptySlots.map((_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="aspect-[3/4] w-full min-w-0 rounded-md border border-dashed border-stone-300 bg-white/80"
+              aria-hidden
+            />
+          ))}
+>>>>>>> 5681e8f7 (初めてのコミット)
         </div>
 
         <p className="mt-2 text-[11px] text-stone-500">
