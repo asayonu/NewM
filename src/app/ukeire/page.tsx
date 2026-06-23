@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function UkeirePage() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <header className="fixed left-0 right-0 top-0 z-30 flex items-center gap-2 border-b border-stone-200/80 bg-white/95 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur">
         <Link
           href="/"
@@ -20,7 +20,9 @@ export default function UkeirePage() {
           受け入れ計算
         </span>
       </header>
-      <HandInputUkeireApp />
+      <div className="flex min-h-0 flex-1 flex-col pt-12">
+        <HandInputUkeireApp />
+      </div>
     </div>
   );
 }

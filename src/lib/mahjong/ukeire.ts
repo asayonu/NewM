@@ -14,6 +14,9 @@ export type HandAnalysis = {
   shanten: number;
   /** 向聴を戻さない切り牌のみ */
   options: DiscardOption[];
+  /** 受入最大の切り牌（同率なら複数） */
+  bestOptions: DiscardOption[];
+  /** bestOptions[0] のエイリアス */
   best: DiscardOption | null;
 };
 
@@ -48,7 +51,7 @@ function sortOptions(a: DiscardOption, b: DiscardOption): number {
 
 export function analyzeFourteen(tiles: TileId[]): HandAnalysis {
   if (tiles.length !== 14) {
-    return { shanten: -1, options: [], best: null };
+    return { shanten: -1, options: [], bestOptions: [], best: null };
   }
 
   const rule = new RuleSet("Riichi");
@@ -69,10 +72,14 @@ export function analyzeFourteen(tiles: TileId[]): HandAnalysis {
 
   options.sort(sortOptions);
 
+  const maxUkeire = options[0]?.totalUkeire ?? -1;
+  const bestOptions = options.filter((o) => o.totalUkeire === maxUkeire);
+
   return {
     shanten: raw.shanten,
     options,
-    best: options[0] ?? null,
+    bestOptions,
+    best: bestOptions[0] ?? null,
   };
 }
 

@@ -16,7 +16,10 @@ export default function HandInputUkeireApp() {
   const [hand, setHand] = useState<TileId[]>([]);
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
 
-  const bestDiscard = analysis?.best?.discard ?? null;
+  const bestDiscardTiles = useMemo(() => {
+    if (!analysis?.bestOptions.length) return new Set<TileId>();
+    return new Set(analysis.bestOptions.map((o) => o.discard));
+  }, [analysis]);
 
   useEffect(() => {
     if (hand.length === HAND_SIZE) {
@@ -47,10 +50,7 @@ export default function HandInputUkeireApp() {
     setAnalysis(null);
   };
 
-  const isBestDiscard = (tile: TileId, index: number) => {
-    if (!bestDiscard || tile !== bestDiscard) return false;
-    return hand.findIndex((t) => t === bestDiscard) === index;
-  };
+  const isBestDiscard = (tile: TileId) => bestDiscardTiles.has(tile);
 
   const emptySlots = useMemo(
     () => Array.from({ length: Math.max(0, HAND_SIZE - hand.length) }),
@@ -58,9 +58,9 @@ export default function HandInputUkeireApp() {
   );
 
   return (
-    <div className="flex min-h-dvh flex-col bg-stone-100 pt-12">
-      {/* 手牌エリア（常に表示） */}
-      <section className="shrink-0 border-b border-stone-200 bg-white px-2 py-3 sm:px-4">
+    <div className="flex h-full min-h-0 flex-col bg-stone-100">
+      {/* 手牌エリア（スクロールしても固定） */}
+      <section className="z-20 shrink-0 border-b border-stone-200 bg-white px-2 pb-3 pt-5 sm:px-4 sm:pt-6">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-stone-600">
             手牌{" "}
@@ -93,7 +93,7 @@ export default function HandInputUkeireApp() {
           style={{ gridTemplateColumns: `repeat(${HAND_SIZE}, minmax(0, 1fr))` }}
         >
           {hand.map((tile, index) => {
-            const isBest = isBestDiscard(tile, index);
+            const isBest = isBestDiscard(tile);
             return (
               <div key={`${tile}-${index}`} className="relative min-w-0">
                 {isBest && (
@@ -126,41 +126,50 @@ export default function HandInputUkeireApp() {
         </p>
       </section>
 
-      {/* 結果 */}
-      <section className="shrink-0 px-4 py-3">
-        {analysis?.best ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-stone-700">切り</span>
-              <MahjongTile tile={analysis.best.discard} size="sm" highlight />
-              <span className="text-lg font-bold text-emerald-700">
-                受入 {analysis.best.totalUkeire} 枚
-              </span>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+        {/* 結果 */}
+        <section className="px-4 py-3">
+          {analysis?.best ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              {analysis.bestOptions.map((opt, i) => (
+                <div
+                  key={opt.discard}
+                  className={i > 0 ? "mt-4 border-t border-emerald-200 pt-4" : undefined}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-stone-700">切り</span>
+                    <MahjongTile tile={opt.discard} size="sm" highlight />
+                    <span className="text-lg font-bold text-emerald-700">
+                      受入 {opt.totalUkeire} 枚
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-stone-600">
+                    向聴 {analysis.shanten} → 切後 {opt.shantenAfterDiscard}
+                  </p>
+                  <div className="mt-2">
+                    <p className="mb-1 text-[11px] font-medium text-stone-500">待ち</p>
+                    <UkeireTileList ukeire={opt.ukeire} />
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="mt-2 text-xs text-stone-600">
-              向聴 {analysis.shanten} → 切後 {analysis.best.shantenAfterDiscard}
+          ) : hand.length === HAND_SIZE ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              向聴を戻さない切りがありません
             </p>
-            <div className="mt-2">
-              <p className="mb-1 text-[11px] font-medium text-stone-500">待ち</p>
-              <UkeireTileList ukeire={analysis.best.ukeire} />
-            </div>
-          </div>
-        ) : hand.length === HAND_SIZE ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            向聴を戻さない切りがありません
-          </p>
-        ) : (
-          <p className="text-sm text-stone-500">
-            14枚そろえると、受け入れ最大の切り牌を表示します
-          </p>
-        )}
-      </section>
+          ) : (
+            <p className="text-sm text-stone-500">
+              14枚そろえると、受け入れ最大の切り牌を表示します
+            </p>
+          )}
+        </section>
 
-      {/* 牌パレット（スクロール可能） */}
-      <section className="min-h-0 flex-1 overflow-y-auto border-t border-stone-200 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <p className="mb-3 text-sm font-bold text-stone-800">牌を選ぶ</p>
-        <TilePalette hand={hand} onAdd={addTile} />
-      </section>
+        {/* 牌パレット */}
+        <section className="border-t border-stone-200 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <p className="mb-3 text-sm font-bold text-stone-800">牌を選ぶ</p>
+          <TilePalette hand={hand} onAdd={addTile} />
+        </section>
+      </div>
     </div>
   );
 }
