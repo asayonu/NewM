@@ -12,6 +12,11 @@ import GameModeToggle from "@/components/shared/GameModeToggle";
 import MahjongTile from "./MahjongTile";
 import TilePalette from "./TilePalette";
 import UkeireTileList from "./UkeireTileList";
+import {
+  shantenLabelClass,
+  ukeireOptionDividerClass,
+  ukeireResultBoxClass,
+} from "./ukeireResultStyles";
 
 const HAND_SIZE = 14;
 
@@ -183,8 +188,8 @@ export default function HandInputUkeireApp() {
         {/* 結果 */}
         <section className="px-4 py-3">
           {analysis?.best ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="mb-3 text-xs text-stone-600">
+            <div className={ukeireResultBoxClass(analysis.shanten === 0)}>
+              <p className={shantenLabelClass(analysis.shanten === 0)}>
                 {analysis.shanten === 0
                   ? "テンパイ！(リーチ！)"
                   : `あと${analysis.shanten}歩`}
@@ -192,7 +197,11 @@ export default function HandInputUkeireApp() {
               {analysis.bestOptions.map((opt, i) => (
                 <div
                   key={opt.discard}
-                  className={i > 0 ? "mt-4 border-t border-emerald-200 pt-4" : undefined}
+                  className={
+                    i > 0
+                      ? `mt-4 border-t pt-4 ${ukeireOptionDividerClass(analysis.shanten === 0)}`
+                      : undefined
+                  }
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-stone-700">切り</span>
@@ -209,8 +218,8 @@ export default function HandInputUkeireApp() {
               ))}
             </div>
           ) : tenpaiAnalysis ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="mb-3 text-xs text-stone-600">テンパイ！(リーチ！)</p>
+            <div className={ukeireResultBoxClass(true)}>
+              <p className={shantenLabelClass(true)}>テンパイ！(リーチ！)</p>
               <span className="text-lg font-bold text-emerald-700">
                 受入 {tenpaiAnalysis.totalUkeire} 枚
               </span>

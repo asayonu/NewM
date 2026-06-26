@@ -14,12 +14,12 @@ function UkeireItem({
 }: UkeireEntry & { size: "xs" | "sm" }) {
   return (
     <div
-      className="relative shrink-0"
+      className="flex shrink-0 flex-col items-center gap-0.5"
       title={`${tileLabel(tile)} ${count}枚`}
       aria-label={`${tileLabel(tile)} ${count}枚`}
     >
       <MahjongTile tile={tile} size={size} />
-      <span className="absolute -bottom-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-stone-700 px-1 text-[10px] font-bold leading-none text-white shadow">
+      <span className="min-w-[1em] text-center text-[10px] font-bold leading-none tabular-nums text-stone-700">
         {count}
       </span>
     </div>

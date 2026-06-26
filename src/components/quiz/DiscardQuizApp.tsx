@@ -4,6 +4,11 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import GameModeToggle from "@/components/shared/GameModeToggle";
 import MahjongTile from "@/components/ukeire/MahjongTile";
 import UkeireTileList from "@/components/ukeire/UkeireTileList";
+import {
+  shantenLabelClass,
+  ukeireOptionDividerClass,
+  ukeireResultBoxClass,
+} from "@/components/ukeire/ukeireResultStyles";
 import { generateQuizHand } from "@/lib/mahjong/randomHand";
 import {
   handSignature,
@@ -206,12 +211,25 @@ export default function DiscardQuizApp() {
                 </div>
               )}
               {analysis?.best ? (
-                <div className="mt-3 space-y-4">
+                <div
+                  className={
+                    analysis.shanten === 0
+                      ? `mt-3 space-y-4 ${ukeireResultBoxClass(true)}`
+                      : "mt-3 space-y-4"
+                  }
+                >
+                  <p className={shantenLabelClass(analysis.shanten === 0)}>
+                    {analysis.shanten === 0
+                      ? "テンパイ！(リーチ！)"
+                      : `あと${analysis.shanten}歩`}
+                  </p>
                   {analysis.bestOptions.map((opt, i) => (
                     <div
                       key={opt.discard}
                       className={
-                        i > 0 ? "border-t border-emerald-200/80 pt-4" : undefined
+                        i > 0
+                          ? `border-t pt-4 ${ukeireOptionDividerClass(analysis.shanten === 0)}`
+                          : undefined
                       }
                     >
                       <div className="flex flex-wrap items-center gap-2">
@@ -223,10 +241,6 @@ export default function DiscardQuizApp() {
                           受入 {opt.totalUkeire} 枚
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-stone-600">
-                        向聴 {analysis.shanten} → 切後{" "}
-                        {opt.shantenAfterDiscard}
-                      </p>
                       <div className="mt-2">
                         <p className="mb-1 text-[11px] font-medium text-stone-500">
                           待ち

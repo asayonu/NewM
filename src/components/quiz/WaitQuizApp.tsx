@@ -132,7 +132,11 @@ export default function WaitQuizApp() {
       return;
     }
     setAnswered(true);
-    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }, 0);
   };
 
   const isCorrect = answered && setsEqual(selectedWaits, correctWaitSet);

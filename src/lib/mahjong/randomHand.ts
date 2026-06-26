@@ -21,6 +21,19 @@ function isExcluded(hand: TileId[], exclude: ReadonlySet<string>): boolean {
   return exclude.has(handSignature(hand));
 }
 
+/** 何切る: 字牌は2枚以上まとめて出す（1枚孤立は不可） */
+function hasLoneHonorTile(hand: TileId[]): boolean {
+  const honorCounts = new Map<TileId, number>();
+  for (const tile of hand) {
+    if (tile[1] !== "z") continue;
+    honorCounts.set(tile, (honorCounts.get(tile) ?? 0) + 1);
+  }
+  for (const count of honorCounts.values()) {
+    if (count === 1) return true;
+  }
+  return false;
+}
+
 export function randomHand(
   pool: readonly TileId[],
   size = 14,
@@ -51,6 +64,7 @@ export function generateQuizHand(
   for (let i = 0; i < 300; i++) {
     const hand = randomHand(pool);
     if (isExcluded(hand, exclude)) continue;
+    if (hasLoneHonorTile(hand)) continue;
     const analysis = analyzeFourteen(hand, mode, "quiz");
     if (analysis.best) {
       return { hand, analysis };

@@ -67,6 +67,77 @@ function shantenAfterDiscard(
   return rule.calShanten(tilesToHand(remaining));
 }
 
+function chiitoitsuShantenAfterDiscard(tiles: TileId[], discard: TileId): number {
+  const remaining = [...tiles];
+  const idx = remaining.indexOf(discard);
+  if (idx === -1) return 99;
+  remaining.splice(idx, 1);
+  return cal.calShantenChiitoi(tilesToHand(remaining));
+}
+
+function calChiitoitsuUkeireForThirteen(
+  tiles: TileId[],
+  allowed: ReadonlySet<TileId>,
+): { ukeire: UkeireMap; totalUkeire: number; shanten: number } {
+  const hand = tilesToHand(tiles);
+  const shanten = cal.calShantenChiitoi(hand);
+  const counts = new Map<TileId, number>();
+  for (const tile of tiles) {
+    counts.set(tile, (counts.get(tile) ?? 0) + 1);
+  }
+
+  const ukeire: UkeireMap = {};
+  let totalUkeire = 0;
+
+  for (const tile of allowed) {
+    const n = counts.get(tile) ?? 0;
+    if (n >= 4) continue;
+    const withTile = [...tiles, tile];
+    if (cal.calShantenChiitoi(tilesToHand(withTile)) < shanten) {
+      const remaining = 4 - n;
+      ukeire[tile] = remaining;
+      totalUkeire += remaining;
+    }
+  }
+
+  return { ukeire, totalUkeire, shanten };
+}
+
+function buildChiitoitsuDiscardOptions(
+  tiles: TileId[],
+  allowed: ReadonlySet<TileId>,
+  normalDiscard: Record<string, UkeireMap>,
+): DiscardOption[] {
+  const options: DiscardOption[] = [];
+
+  for (const discard of Object.keys(normalDiscard)) {
+    if (!isTileId(discard)) continue;
+
+    const chiitoiAfter = chiitoitsuShantenAfterDiscard(tiles, discard);
+    if (chiitoiAfter >= 2) continue;
+
+    const remaining = [...tiles];
+    const idx = remaining.indexOf(discard);
+    if (idx === -1) continue;
+    remaining.splice(idx, 1);
+
+    const { ukeire, totalUkeire, shanten } = calChiitoitsuUkeireForThirteen(
+      remaining,
+      allowed,
+    );
+
+    options.push({
+      discard,
+      totalUkeire,
+      shantenAfterDiscard: shanten,
+      ukeire,
+    });
+  }
+
+  options.sort(sortOptions);
+  return options;
+}
+
 function sortOptions(a: DiscardOption, b: DiscardOption): number {
   if (b.totalUkeire !== a.totalUkeire) return b.totalUkeire - a.totalUkeire;
   if (a.shantenAfterDiscard !== b.shantenAfterDiscard) {
@@ -84,6 +155,15 @@ function discardCategory(tile: TileId): 0 | 1 | 2 {
   return 2;
 }
 
+/** 中張牌は中心(5)から遠い順。同距離なら数字の大きい順 */
+function compareMiddleTileOrder(a: TileId, b: TileId): number {
+  const distA = Math.abs(Number(a[0]) - 5);
+  const distB = Math.abs(Number(b[0]) - 5);
+  if (distB !== distA) return distB - distA;
+  if (Number(b[0]) !== Number(a[0])) return Number(b[0]) - Number(a[0]);
+  return ALL_TILES.indexOf(a) - ALL_TILES.indexOf(b);
+}
+
 function compareDiscardTileOrder(
   a: TileId,
   b: TileId,
@@ -94,16 +174,13 @@ function compareDiscardTileOrder(
   if (catA !== catB) {
     return reverse ? catB - catA : catA - catB;
   }
+  if (catA === 2) return compareMiddleTileOrder(a, b);
   return ALL_TILES.indexOf(a) - ALL_TILES.indexOf(b);
 }
 
-/** 七対子形で進める手牌か（向聴が七対子側で決まる） */
+/** 七対子形で進める手牌か（1向聴以下で七対子を採用） */
 function isChiitoitsuOriented(hand: ReturnType<typeof tilesToHand>): boolean {
-  const menzu = cal.calShantenMenzu(hand);
-  const chiitoi = cal.calShantenChiitoi(hand);
-  const kokushi = cal.calShantenKokushi(hand);
-  const overall = Math.min(menzu, chiitoi, kokushi);
-  return chiitoi === overall && chiitoi <= menzu;
+  return cal.calShantenChiitoi(hand) <= 1;
 }
 
 function sortBestOptionsByTileType(
@@ -133,23 +210,31 @@ export function analyzeFourteen(
     normalDiscard?: Record<string, UkeireMap>;
   };
 
-  const options: DiscardOption[] = Object.entries(raw.normalDiscard ?? {}).map(
-    ([discard, ukeire]) => {
-      const filtered = filterUkeire(ukeire, allowed);
-      return {
-        discard: discard as TileId,
-        totalUkeire: sumUkeire(filtered),
-        shantenAfterDiscard: shantenAfterDiscard(
-          tiles,
-          discard as TileId,
-          rule,
-        ),
-        ukeire: filtered,
-      };
-    },
-  );
+  const useChiitoitsu = cal.calShantenChiitoi(hand) <= 1;
 
-  options.sort(sortOptions);
+  const options: DiscardOption[] = useChiitoitsu
+    ? buildChiitoitsuDiscardOptions(
+        tiles,
+        allowed,
+        raw.normalDiscard ?? {},
+      )
+    : Object.entries(raw.normalDiscard ?? {}).map(([discard, ukeire]) => {
+        const filtered = filterUkeire(ukeire, allowed);
+        return {
+          discard: discard as TileId,
+          totalUkeire: sumUkeire(filtered),
+          shantenAfterDiscard: shantenAfterDiscard(
+            tiles,
+            discard as TileId,
+            rule,
+          ),
+          ukeire: filtered,
+        };
+      });
+
+  if (!useChiitoitsu) {
+    options.sort(sortOptions);
+  }
 
   const maxUkeire = options[0]?.totalUkeire ?? -1;
   const bestOptions = sortBestOptionsByTileType(
