@@ -1,10 +1,11 @@
 "use client";
 
-import { ALL_TILES, tileLabel, type TileId } from "@/lib/mahjong/tiles";
+import { tilesForMode, tileLabel, type GameMode, type TileId } from "@/lib/mahjong/tiles";
 import MahjongTile from "./MahjongTile";
 
 type Props = {
   hand: TileId[];
+  mode: GameMode;
   onAdd: (tile: TileId) => void;
   disabled?: boolean;
 };
@@ -20,12 +21,17 @@ function countInHand(hand: TileId[], tile: TileId): number {
   return hand.filter((t) => t === tile).length;
 }
 
-export default function TilePalette({ hand, onAdd, disabled }: Props) {
+export default function TilePalette({ hand, mode, onAdd, disabled }: Props) {
   const handFull = hand.length >= 14;
+  const paletteTiles = tilesForMode(mode);
 
   return (
     <div className="space-y-3">
-      {SUITS.map(({ key, title }) => (
+      {SUITS.map(({ key, title }) => {
+        const suitTiles = paletteTiles.filter((t) => t[1] === key);
+        if (suitTiles.length === 0) return null;
+
+        return (
         <section key={key}>
           <p className="mb-1.5 text-xs font-medium text-stone-500">{title}</p>
           <div
@@ -35,7 +41,7 @@ export default function TilePalette({ hand, onAdd, disabled }: Props) {
                 : "grid grid-cols-9 gap-1"
             }
           >
-            {ALL_TILES.filter((t) => t[1] === key).map((tile) => {
+            {suitTiles.map((tile) => {
               const count = countInHand(hand, tile);
               const canAdd = !disabled && !handFull && count < 4;
 
@@ -63,7 +69,8 @@ export default function TilePalette({ hand, onAdd, disabled }: Props) {
             })}
           </div>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

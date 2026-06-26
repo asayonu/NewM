@@ -5,7 +5,8 @@ import {
   analyzeFourteen,
   type HandAnalysis,
 } from "@/lib/mahjong/ukeire";
-import { tileLabel, type TileId } from "@/lib/mahjong/tiles";
+import { tileLabel, sortHand, type GameMode, type TileId } from "@/lib/mahjong/tiles";
+import GameModeToggle from "@/components/shared/GameModeToggle";
 import MahjongTile from "./MahjongTile";
 import TilePalette from "./TilePalette";
 import UkeireTileList from "./UkeireTileList";
@@ -14,6 +15,7 @@ const HAND_SIZE = 14;
 
 export default function HandInputUkeireApp() {
   const [hand, setHand] = useState<TileId[]>([]);
+  const [mode, setMode] = useState<GameMode>("sanma");
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
 
   const bestDiscardTiles = useMemo(() => {
@@ -23,11 +25,18 @@ export default function HandInputUkeireApp() {
 
   useEffect(() => {
     if (hand.length === HAND_SIZE) {
-      setAnalysis(analyzeFourteen(hand));
+      setAnalysis(analyzeFourteen(hand, mode));
     } else {
       setAnalysis(null);
     }
-  }, [hand]);
+  }, [hand, mode]);
+
+  const switchMode = (next: GameMode) => {
+    if (next === mode) return;
+    setMode(next);
+    setHand([]);
+    setAnalysis(null);
+  };
 
   const addTile = (tile: TileId) => {
     setHand((prev) => {
@@ -50,6 +59,10 @@ export default function HandInputUkeireApp() {
     setAnalysis(null);
   };
 
+  const organizeHand = () => {
+    setHand((prev) => sortHand(prev));
+  };
+
   const isBestDiscard = (tile: TileId) => bestDiscardTiles.has(tile);
 
   const emptySlots = useMemo(
@@ -61,14 +74,25 @@ export default function HandInputUkeireApp() {
     <div className="flex h-full min-h-0 flex-col bg-stone-100">
       {/* 手牌エリア（スクロールしても固定） */}
       <section className="z-20 shrink-0 border-b border-stone-200 bg-white px-2 pb-3 pt-5 sm:px-4 sm:pt-6">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-medium text-stone-600">
-            手牌{" "}
-            <span className="font-bold text-stone-900">
-              {hand.length}/{HAND_SIZE}
-            </span>
-          </p>
-          <div className="flex gap-2">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="shrink-0 text-sm font-medium text-stone-600">
+              手牌{" "}
+              <span className="font-bold text-stone-900">
+                {hand.length}/{HAND_SIZE}
+              </span>
+            </p>
+            <GameModeToggle mode={mode} onChange={switchMode} />
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={organizeHand}
+              disabled={hand.length === 0}
+              className="rounded-lg border border-stone-300 bg-white px-3 py-1 text-xs font-medium text-stone-700 disabled:opacity-40"
+            >
+              理牌
+            </button>
             <button
               type="button"
               onClick={undoLast}
@@ -167,7 +191,7 @@ export default function HandInputUkeireApp() {
         {/* 牌パレット */}
         <section className="border-t border-stone-200 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <p className="mb-3 text-sm font-bold text-stone-800">牌を選ぶ</p>
-          <TilePalette hand={hand} onAdd={addTile} />
+          <TilePalette hand={hand} mode={mode} onAdd={addTile} />
         </section>
       </div>
     </div>

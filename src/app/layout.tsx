@@ -9,8 +9,8 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "麻雀成績管理",
-  description: "対局結果を記録・管理するアプリ",
+  title: "麻雀ツール",
+  description: "受け入れMAX君・受け入れMAX何切るなどの麻雀練習ツール",
 };
 
 export const viewport: Viewport = {

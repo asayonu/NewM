@@ -1,5 +1,13 @@
 import { RuleSet, tilesToHand } from "mahjong-tile-efficiency";
-import { ALL_TILES, isTileId, tileLabel, type TileId } from "./tiles";
+import {
+  ALL_TILES,
+  isTileId,
+  tileLabel,
+  tilesForContext,
+  type GameMode,
+  type TileContext,
+  type TileId,
+} from "./tiles";
 
 type UkeireMap = Record<string, number>;
 
@@ -29,6 +37,16 @@ function sumUkeire(map: UkeireMap): number {
   return Object.values(map).reduce((a, b) => a + b, 0);
 }
 
+function filterUkeire(map: UkeireMap, allowed: ReadonlySet<TileId>): UkeireMap {
+  const filtered: UkeireMap = {};
+  for (const [tile, count] of Object.entries(map)) {
+    if (isTileId(tile) && allowed.has(tile)) {
+      filtered[tile] = count;
+    }
+  }
+  return filtered;
+}
+
 function shantenAfterDiscard(
   tiles: TileId[],
   discard: TileId,
@@ -49,11 +67,16 @@ function sortOptions(a: DiscardOption, b: DiscardOption): number {
   return a.discard.localeCompare(b.discard);
 }
 
-export function analyzeFourteen(tiles: TileId[]): HandAnalysis {
+export function analyzeFourteen(
+  tiles: TileId[],
+  mode: GameMode = "yonma",
+  context: TileContext = "default",
+): HandAnalysis {
   if (tiles.length !== 14) {
     return { shanten: -1, options: [], bestOptions: [], best: null };
   }
 
+  const allowed = new Set(tilesForContext(mode, context));
   const rule = new RuleSet("Riichi");
   const hand = tilesToHand(tiles);
   const raw = rule.calUkeire(hand) as {
@@ -62,12 +85,19 @@ export function analyzeFourteen(tiles: TileId[]): HandAnalysis {
   };
 
   const options: DiscardOption[] = Object.entries(raw.normalDiscard ?? {}).map(
-    ([discard, ukeire]) => ({
-      discard: discard as TileId,
-      totalUkeire: sumUkeire(ukeire),
-      shantenAfterDiscard: shantenAfterDiscard(tiles, discard as TileId, rule),
-      ukeire,
-    }),
+    ([discard, ukeire]) => {
+      const filtered = filterUkeire(ukeire, allowed);
+      return {
+        discard: discard as TileId,
+        totalUkeire: sumUkeire(filtered),
+        shantenAfterDiscard: shantenAfterDiscard(
+          tiles,
+          discard as TileId,
+          rule,
+        ),
+        ukeire: filtered,
+      };
+    },
   );
 
   options.sort(sortOptions);
