@@ -74,7 +74,7 @@ export default function HandInputUkeireApp() {
     <div className="flex h-full min-h-0 flex-col bg-stone-100">
       {/* 手牌エリア（スクロールしても固定） */}
       <section className="z-20 shrink-0 border-b border-stone-200 bg-white px-2 pb-3 pt-5 sm:px-4 sm:pt-6">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2">
           <div className="flex min-w-0 items-center gap-2">
             <p className="shrink-0 text-sm font-medium text-stone-600">
               手牌{" "}
@@ -84,7 +84,7 @@ export default function HandInputUkeireApp() {
             </p>
             <GameModeToggle mode={mode} onChange={switchMode} />
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="ml-auto flex flex-wrap gap-2">
             <button
               type="button"
               onClick={organizeHand}
