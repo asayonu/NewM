@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   analyzeFourteen,
+  analyzeThirteen,
   type HandAnalysis,
+  type TenpaiAnalysis,
 } from "@/lib/mahjong/ukeire";
 import { tileLabel, sortHand, type GameMode, type TileId } from "@/lib/mahjong/tiles";
 import GameModeToggle from "@/components/shared/GameModeToggle";
@@ -17,6 +19,11 @@ export default function HandInputUkeireApp() {
   const [hand, setHand] = useState<TileId[]>([]);
   const [mode, setMode] = useState<GameMode>("sanma");
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
+  const [tenpaiAnalysis, setTenpaiAnalysis] = useState<TenpaiAnalysis | null>(
+    null,
+  );
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const prevHandLengthRef = useRef(0);
 
   const bestDiscardTiles = useMemo(() => {
     if (!analysis?.bestOptions.length) return new Set<TileId>();
@@ -26,9 +33,26 @@ export default function HandInputUkeireApp() {
   useEffect(() => {
     if (hand.length === HAND_SIZE) {
       setAnalysis(analyzeFourteen(hand, mode));
+      setTenpaiAnalysis(null);
+      if (prevHandLengthRef.current < HAND_SIZE) {
+        window.setTimeout(() => {
+          scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+        }, 0);
+      }
+    } else if (hand.length === 13) {
+      setAnalysis(null);
+      const tenpai = analyzeThirteen(hand, mode);
+      setTenpaiAnalysis(tenpai);
+      if (tenpai && prevHandLengthRef.current < 13) {
+        window.setTimeout(() => {
+          scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+        }, 0);
+      }
     } else {
       setAnalysis(null);
+      setTenpaiAnalysis(null);
     }
+    prevHandLengthRef.current = hand.length;
   }, [hand, mode]);
 
   const switchMode = (next: GameMode) => {
@@ -36,6 +60,7 @@ export default function HandInputUkeireApp() {
     setMode(next);
     setHand([]);
     setAnalysis(null);
+    setTenpaiAnalysis(null);
   };
 
   const addTile = (tile: TileId) => {
@@ -57,6 +82,7 @@ export default function HandInputUkeireApp() {
   const resetHand = () => {
     setHand([]);
     setAnalysis(null);
+    setTenpaiAnalysis(null);
   };
 
   const organizeHand = () => {
@@ -150,11 +176,19 @@ export default function HandInputUkeireApp() {
         </p>
       </section>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+      >
         {/* 結果 */}
         <section className="px-4 py-3">
           {analysis?.best ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="mb-3 text-xs text-stone-600">
+                {analysis.shanten === 0
+                  ? "テンパイ！(リーチ！)"
+                  : `あと${analysis.shanten}歩`}
+              </p>
               {analysis.bestOptions.map((opt, i) => (
                 <div
                   key={opt.discard}
@@ -167,15 +201,23 @@ export default function HandInputUkeireApp() {
                       受入 {opt.totalUkeire} 枚
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-stone-600">
-                    向聴 {analysis.shanten} → 切後 {opt.shantenAfterDiscard}
-                  </p>
                   <div className="mt-2">
                     <p className="mb-1 text-[11px] font-medium text-stone-500">待ち</p>
                     <UkeireTileList ukeire={opt.ukeire} />
                   </div>
                 </div>
               ))}
+            </div>
+          ) : tenpaiAnalysis ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="mb-3 text-xs text-stone-600">テンパイ！(リーチ！)</p>
+              <span className="text-lg font-bold text-emerald-700">
+                受入 {tenpaiAnalysis.totalUkeire} 枚
+              </span>
+              <div className="mt-2">
+                <p className="mb-1 text-[11px] font-medium text-stone-500">待ち</p>
+                <UkeireTileList ukeire={tenpaiAnalysis.ukeire} />
+              </div>
             </div>
           ) : hand.length === HAND_SIZE ? (
             <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
