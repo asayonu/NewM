@@ -1,6 +1,12 @@
 declare module "mahjong-tile-efficiency" {
   export type Hand = number[][];
 
+  export const cal: {
+    calShantenMenzu: (hand: Hand) => number;
+    calShantenChiitoi: (hand: Hand) => number;
+    calShantenKokushi: (hand: Hand) => number;
+  };
+
   export class RuleSet {
     constructor(ruleName: "Riichi" | "Menzu" | "HK" | "ZungJung" | "MCR" | "Taiwan" | "HKTW");
     calShanten(hand: Hand): number;

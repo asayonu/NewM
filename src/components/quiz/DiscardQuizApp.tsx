@@ -15,6 +15,9 @@ export default function DiscardQuizApp() {
   const [hand, setHand] = useState<TileId[]>([]);
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
   const [selectedDiscard, setSelectedDiscard] = useState<TileId | null>(null);
+  const [selectedDiscardIndex, setSelectedDiscardIndex] = useState<number | null>(
+    null,
+  );
   const [answered, setAnswered] = useState(false);
 
   const loadProblem = useCallback((nextMode: GameMode) => {
@@ -22,6 +25,7 @@ export default function DiscardQuizApp() {
     setHand(nextHand);
     setAnalysis(nextAnalysis);
     setSelectedDiscard(null);
+    setSelectedDiscardIndex(null);
     setAnswered(false);
   }, []);
 
@@ -40,9 +44,10 @@ export default function DiscardQuizApp() {
     return new Set(analysis.bestOptions.map((o) => o.discard));
   }, [analysis]);
 
-  const chooseDiscard = (tile: TileId) => {
+  const chooseDiscard = (tile: TileId, index: number) => {
     if (answered || !analysis?.best) return;
     setSelectedDiscard(tile);
+    setSelectedDiscardIndex(index);
     setAnswered(true);
   };
 
@@ -51,21 +56,21 @@ export default function DiscardQuizApp() {
     selectedDiscard !== null &&
     bestDiscardTiles.has(selectedDiscard);
 
-  const tileHighlight = (tile: TileId) => {
+  const tileHighlight = (tile: TileId, index: number) => {
     if (!answered) return false;
-    if (bestDiscardTiles.has(tile)) return true;
-    return tile === selectedDiscard;
+    if (!isCorrect && index === selectedDiscardIndex) return false;
+    return bestDiscardTiles.has(tile);
   };
 
-  const tileClassName = (tile: TileId) => {
+  const tileClassName = (tile: TileId, index: number) => {
     if (!answered) {
       return "block aspect-[3/4] w-full rounded-md transition hover:ring-2 hover:ring-emerald-400 active:scale-95";
     }
+    if (!isCorrect && index === selectedDiscardIndex) {
+      return "block aspect-[3/4] w-full rounded-md ring-2 ring-red-500";
+    }
     if (bestDiscardTiles.has(tile)) {
       return "block aspect-[3/4] w-full rounded-md ring-2 ring-emerald-500";
-    }
-    if (tile === selectedDiscard && !isCorrect) {
-      return "block aspect-[3/4] w-full rounded-md ring-2 ring-red-500";
     }
     return "block aspect-[3/4] w-full rounded-md opacity-70";
   };
@@ -116,15 +121,15 @@ export default function DiscardQuizApp() {
                 <div key={`${tile}-${index}`} className="relative min-w-0">
                   <button
                     type="button"
-                    onClick={() => chooseDiscard(tile)}
+                    onClick={() => chooseDiscard(tile, index)}
                     disabled={answered}
-                    className={tileClassName(tile)}
+                    className={tileClassName(tile, index)}
                     aria-label={`${tileLabel(tile)}を切る`}
                   >
                     <MahjongTile
                       tile={tile}
                       size="fill"
-                      highlight={tileHighlight(tile)}
+                      highlight={tileHighlight(tile, index)}
                     />
                   </button>
                 </div>

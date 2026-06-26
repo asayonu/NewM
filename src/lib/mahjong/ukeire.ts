@@ -1,4 +1,4 @@
-import { RuleSet, tilesToHand } from "mahjong-tile-efficiency";
+import { cal, RuleSet, tilesToHand } from "mahjong-tile-efficiency";
 import {
   ALL_TILES,
   isTileId,
@@ -67,6 +67,47 @@ function sortOptions(a: DiscardOption, b: DiscardOption): number {
   return a.discard.localeCompare(b.discard);
 }
 
+/** 字牌=0, 么九牌=1, 中張牌=2 */
+function discardCategory(tile: TileId): 0 | 1 | 2 {
+  const suit = tile[1];
+  const num = Number(tile[0]);
+  if (suit === "z") return 0;
+  if (num === 1 || num === 9) return 1;
+  return 2;
+}
+
+function compareDiscardTileOrder(
+  a: TileId,
+  b: TileId,
+  reverse: boolean,
+): number {
+  const catA = discardCategory(a);
+  const catB = discardCategory(b);
+  if (catA !== catB) {
+    return reverse ? catB - catA : catA - catB;
+  }
+  return ALL_TILES.indexOf(a) - ALL_TILES.indexOf(b);
+}
+
+/** 七対子形で進める手牌か（向聴が七対子側で決まる） */
+function isChiitoitsuOriented(hand: ReturnType<typeof tilesToHand>): boolean {
+  const menzu = cal.calShantenMenzu(hand);
+  const chiitoi = cal.calShantenChiitoi(hand);
+  const kokushi = cal.calShantenKokushi(hand);
+  const overall = Math.min(menzu, chiitoi, kokushi);
+  return chiitoi === overall && chiitoi <= menzu;
+}
+
+function sortBestOptionsByTileType(
+  bestOptions: DiscardOption[],
+  hand: ReturnType<typeof tilesToHand>,
+): DiscardOption[] {
+  const reverse = isChiitoitsuOriented(hand);
+  return [...bestOptions].sort((a, b) =>
+    compareDiscardTileOrder(a.discard, b.discard, reverse),
+  );
+}
+
 export function analyzeFourteen(
   tiles: TileId[],
   mode: GameMode = "yonma",
@@ -103,7 +144,10 @@ export function analyzeFourteen(
   options.sort(sortOptions);
 
   const maxUkeire = options[0]?.totalUkeire ?? -1;
-  const bestOptions = options.filter((o) => o.totalUkeire === maxUkeire);
+  const bestOptions = sortBestOptionsByTileType(
+    options.filter((o) => o.totalUkeire === maxUkeire),
+    hand,
+  );
 
   return {
     shanten: raw.shanten,
