@@ -4,12 +4,18 @@ const MENU_ITEMS = [
   {
     href: "/ukeire",
     title: "受け入れMAX君",
-    description: "14枚を入力して、受入最大の切り牌と待ちを表示します",
+    description: "14枚を入力して、受け入れ最大の牌と待ちを表示します",
   },
   {
     href: "/quiz",
     title: "受け入れMAX何切る",
-    description: "ランダムな手牌で、最善の切り牌を当てる練習問題です",
+    description: "ランダムな手牌で、受け入れ最大の牌を当てる練習問題です",
+  },
+  {
+    href: "/wait-quiz",
+    title: "待ち牌なんじゃろな",
+    description:
+      "テンパイの牌姿から待ち牌を当てる練習問題です\n（待ち2〜4種類）",
   },
 ] as const;
 
@@ -34,7 +40,9 @@ export default function Home() {
             className="rounded-2xl border border-stone-200/80 bg-white p-5 text-center shadow-sm shadow-stone-200/50 transition hover:border-emerald-200 hover:bg-emerald-50/40"
           >
             <h2 className="text-lg font-bold text-stone-900">{title}</h2>
-            <p className="mt-1.5 text-sm text-stone-600">{description}</p>
+            <p className="mt-1.5 whitespace-pre-line text-sm text-stone-600">
+              {description}
+            </p>
           </Link>
         ))}
       </nav>

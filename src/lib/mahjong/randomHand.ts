@@ -1,5 +1,25 @@
-import { analyzeFourteen, type HandAnalysis } from "./ukeire";
-import { sortHand, tilesForQuiz, type GameMode, type TileId } from "./tiles";
+import {
+  analyzeFourteen,
+  type HandAnalysis,
+  type TenpaiAnalysis,
+} from "./ukeire";
+import {
+  handSignature,
+  sortHand,
+  tilesForQuiz,
+  type GameMode,
+  type TileId,
+} from "./tiles";
+import {
+  pickWaitQuizHand,
+  WaitQuizExhaustedError,
+} from "./waitQuizCatalog";
+
+export { handSignature, WaitQuizExhaustedError };
+
+function isExcluded(hand: TileId[], exclude: ReadonlySet<string>): boolean {
+  return exclude.has(handSignature(hand));
+}
 
 export function randomHand(
   pool: readonly TileId[],
@@ -19,20 +39,34 @@ export function randomHand(
   return sortHand(hand);
 }
 
-export function generateQuizHand(mode: GameMode): {
+export function generateQuizHand(
+  mode: GameMode,
+  exclude: ReadonlySet<string> = new Set(),
+): {
   hand: TileId[];
   analysis: HandAnalysis;
 } {
   const pool = tilesForQuiz(mode);
 
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 300; i++) {
     const hand = randomHand(pool);
+    if (isExcluded(hand, exclude)) continue;
     const analysis = analyzeFourteen(hand, mode, "quiz");
     if (analysis.best) {
       return { hand, analysis };
     }
   }
 
-  const hand = randomHand(pool);
-  return { hand, analysis: analyzeFourteen(hand, mode, "quiz") };
+  throw new Error("QUIZ_EXHAUSTED");
+}
+
+/** テンパイ13枚＋待ち2〜4種類（同一手牌は exclude で除外） */
+export function generateWaitQuizHand(
+  mode: GameMode,
+  exclude: ReadonlySet<string> = new Set(),
+): {
+  hand: TileId[];
+  analysis: TenpaiAnalysis;
+} {
+  return pickWaitQuizHand(mode, exclude);
 }

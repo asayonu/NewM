@@ -1,13 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import GameModeToggle from "@/components/shared/GameModeToggle";
 import MahjongTile from "@/components/ukeire/MahjongTile";
 import UkeireTileList from "@/components/ukeire/UkeireTileList";
 import { generateQuizHand } from "@/lib/mahjong/randomHand";
-import { tileLabel, type GameMode, type TileId } from "@/lib/mahjong/tiles";
+import {
+  handSignature,
+  tileLabel,
+  type GameMode,
+  type TileId,
+} from "@/lib/mahjong/tiles";
 import type { HandAnalysis } from "@/lib/mahjong/ukeire";
-
 const HAND_SIZE = 14;
 
 export default function DiscardQuizApp() {
@@ -19,26 +23,55 @@ export default function DiscardQuizApp() {
     null,
   );
   const [answered, setAnswered] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadProblem = useCallback((nextMode: GameMode) => {
-    const { hand: nextHand, analysis: nextAnalysis } = generateQuizHand(nextMode);
-    setHand(nextHand);
-    setAnalysis(nextAnalysis);
-    setSelectedDiscard(null);
-    setSelectedDiscardIndex(null);
-    setAnswered(false);
+  const seenHandsRef = useRef<Map<GameMode, Set<string>>>(new Map());
+
+  const getSeenHands = (nextMode: GameMode) => {
+    let seen = seenHandsRef.current.get(nextMode);
+    if (!seen) {
+      seen = new Set();
+      seenHandsRef.current.set(nextMode, seen);
+    }
+    return seen;
+  };
+
+  const loadProblem = useCallback((nextMode: GameMode, resetHistory = false) => {
+    setLoadError(null);
+    try {
+      if (resetHistory) {
+        seenHandsRef.current.set(nextMode, new Set());
+      }
+
+      const seen = getSeenHands(nextMode);
+      const { hand: nextHand, analysis: nextAnalysis } = generateQuizHand(
+        nextMode,
+        seen,
+      );
+
+      seen.add(handSignature(nextHand));
+      setHand(nextHand);
+      setAnalysis(nextAnalysis);
+      setSelectedDiscard(null);
+      setSelectedDiscardIndex(null);
+      setAnswered(false);
+    } catch {
+      setHand([]);
+      setAnalysis(null);
+      setLoadError(
+        "新しい問題を生成できませんでした。「問題を始める」で履歴をリセットして続けられます。",
+      );
+    }
   }, []);
-
   const switchMode = (next: GameMode) => {
     if (next === mode) return;
     setMode(next);
-    loadProblem(next);
+    loadProblem(next, true);
   };
 
   const startQuiz = () => {
-    loadProblem(mode);
+    loadProblem(mode, true);
   };
-
   const bestDiscardTiles = useMemo(() => {
     if (!analysis?.bestOptions.length) return new Set<TileId>();
     return new Set(analysis.bestOptions.map((o) => o.discard));
@@ -98,6 +131,9 @@ export default function DiscardQuizApp() {
 
         {hand.length === 0 ? (
           <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-8 text-center">
+            {loadError && (
+              <p className="mb-3 text-sm text-red-700">{loadError}</p>
+            )}
             <p className="text-sm text-stone-600">
               ランダムな14枚の手牌が出題されます
             </p>

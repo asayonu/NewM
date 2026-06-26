@@ -50,6 +50,11 @@ export function sortHand(tiles: TileId[]): TileId[] {
   return [...tiles].sort((a, b) => ALL_TILES.indexOf(a) - ALL_TILES.indexOf(b));
 }
 
+/** 手牌の一意キー（重複判定用） */
+export function handSignature(tiles: TileId[]): string {
+  return sortHand(tiles).join(",");
+}
+
 const HONOR_LABELS = ["東", "南", "西", "北", "白", "發", "中"] as const;
 
 export function tileLabel(id: TileId): string {

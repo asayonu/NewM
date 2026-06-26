@@ -28,6 +28,14 @@ export type HandAnalysis = {
   best: DiscardOption | null;
 };
 
+export type TenpaiAnalysis = {
+  shanten: number;
+  ukeire: UkeireMap;
+  totalUkeire: number;
+  /** 待ち牌の種類数 */
+  waitTypes: number;
+};
+
 export type UkeireEntry = {
   tile: TileId;
   count: number;
@@ -154,6 +162,36 @@ export function analyzeFourteen(
     options,
     bestOptions,
     best: bestOptions[0] ?? null,
+  };
+}
+
+/** 13枚テンパイの待ち牌を計算 */
+export function analyzeThirteen(
+  tiles: TileId[],
+  mode: GameMode = "yonma",
+  context: TileContext = "default",
+): TenpaiAnalysis | null {
+  if (tiles.length !== 13) return null;
+
+  const allowed = new Set(tilesForContext(mode, context));
+  const rule = new RuleSet("Riichi");
+  const hand = tilesToHand(tiles);
+  const raw = rule.calUkeire(hand) as {
+    shanten: number;
+    ukeire?: UkeireMap;
+  };
+
+  if (raw.shanten !== 0) return null;
+
+  const ukeire = filterUkeire(raw.ukeire ?? {}, allowed);
+  const waitTypes = Object.keys(ukeire).length;
+  if (waitTypes === 0) return null;
+
+  return {
+    shanten: 0,
+    ukeire,
+    totalUkeire: sumUkeire(ukeire),
+    waitTypes,
   };
 }
 
