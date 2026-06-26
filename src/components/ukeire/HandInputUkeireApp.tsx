@@ -91,7 +91,7 @@ export default function HandInputUkeireApp() {
               disabled={hand.length === 0}
               className="rounded-lg border border-stone-300 bg-white px-3 py-1 text-xs font-medium text-stone-700 disabled:opacity-40"
             >
-              理牌
+              整理（理牌）
             </button>
             <button
               type="button"
