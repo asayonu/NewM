@@ -3,19 +3,19 @@ import Link from "next/link";
 const MENU_ITEMS = [
   {
     href: "/ukeire",
-    title: "受け入れMAX君",
-    description: "14枚を入力して、受け入れ最大の牌と待ちを表示します",
+    title: "とりあえずこれ切っとけ君",
+    description: "14枚の手牌を入力すると何を切れば\n受け入れる牌が最大になるかを表示します",
   },
   {
     href: "/quiz",
-    title: "受け入れMAX何切る",
-    description: "ランダムな手牌で、受け入れ最大の牌を当てる練習問題です",
+    title: "どれを捨てればええんやろクイズ",
+    description: "ランダムな手牌で受け入れる牌が最大になる牌を当てる\n練習問題です",
   },
   {
     href: "/wait-quiz",
     title: "待ち牌なんじゃろな",
     description:
-      "テンパイの牌姿から待ち牌を当てる練習問題です\n（待ち2〜4種類）",
+      "テンパイ（リーチ）の状態で何の牌を待っているかを当てる\n練習問題です\n（待ち2〜4種類）",
   },
 ] as const;
 
@@ -26,10 +26,9 @@ export default function Home() {
         <p className="text-xs font-medium tracking-wider text-emerald-700 uppercase">
           Mahjong Tools
         </p>
-        <h1 className="mt-1 text-2xl font-bold text-stone-900">ホーム</h1>
-        <p className="mt-2 text-sm text-stone-600">
-          麻雀の練習・計算メニュー
-        </p>
+        <h1 className="mt-1 text-2xl font-bold text-stone-900">
+          麻雀ツール・練習問題
+        </h1>
       </header>
 
       <nav className="flex w-full max-w-md flex-col gap-3">

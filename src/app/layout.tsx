@@ -10,7 +10,7 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: "麻雀ツール",
-  description: "受け入れMAX君・受け入れMAX何切る・待ち牌なんじゃろななどの麻雀練習ツール",
+  description: "とりあえずこれ切っとけ君・どれを捨てればええんやろクイズ・待ち牌なんじゃろなクイズ、などの麻雀練習ツール",
 };
 
 export const viewport: Viewport = {
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${notoSansJP.variable} font-sans antialiased bg-stone-100 text-stone-900`}
+        className={`${notoSansJP.variable} antialiased bg-stone-100 text-stone-900`}
       >
         {children}
       </body>

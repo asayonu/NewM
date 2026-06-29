@@ -141,24 +141,27 @@ export default function WaitQuizApp() {
 
   const isCorrect = answered && setsEqual(selectedWaits, correctWaitSet);
 
+  const pickerBase =
+    "relative flex w-fit justify-self-center self-center items-center justify-center rounded-md p-0.5";
+
   const pickerClassName = (tile: TileId) => {
     const selected = selectedWaits.has(tile);
     if (!answered) {
       return selected
-        ? "relative flex items-center justify-center rounded-lg p-0.5 ring-2 ring-emerald-500 bg-emerald-50"
-        : "relative flex items-center justify-center rounded-lg p-0.5 transition hover:bg-emerald-50 active:scale-95";
+        ? `${pickerBase} ring-2 ring-emerald-500 bg-emerald-50`
+        : `${pickerBase} transition hover:bg-emerald-50 active:scale-95`;
     }
     const isWait = correctWaitSet.has(tile);
     if (selected && isWait) {
-      return "relative flex items-center justify-center rounded-lg p-0.5 ring-2 ring-emerald-500";
+      return `${pickerBase} ring-2 ring-emerald-500`;
     }
     if (selected && !isWait) {
-      return "relative flex items-center justify-center rounded-lg p-0.5 ring-2 ring-red-500 opacity-90";
+      return `${pickerBase} ring-2 ring-red-500 opacity-90`;
     }
     if (!selected && isWait) {
-      return "relative flex items-center justify-center rounded-lg p-0.5 ring-2 ring-amber-400";
+      return `${pickerBase} ring-2 ring-amber-400`;
     }
-    return "relative flex items-center justify-center rounded-lg p-0.5 opacity-40";
+    return `${pickerBase} opacity-40`;
   };
 
   const paletteTiles = tilesForMode(mode);
@@ -166,6 +169,11 @@ export default function WaitQuizApp() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-stone-100">
       <section className="z-20 shrink-0 border-b border-stone-200 bg-white px-2 pb-3 pt-5 sm:px-4 sm:pt-6">
+        {hand.length > 0 && !answered && (
+          <p className="mb-2 text-[11px] text-stone-500">
+            テンパイ（リーチ）— 待っている牌を選んで「回答する」を押してください
+          </p>
+        )}
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <p className="shrink-0 text-sm font-medium text-stone-600">
@@ -228,11 +236,11 @@ export default function WaitQuizApp() {
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-[11px] text-stone-500">
-              {answered
-                ? "結果を確認できます。次の問題へ進めます"
-                : "テンパイ — 待ち牌を選んで「回答する」を押してください"}
-            </p>
+            {answered && (
+              <p className="mt-2 text-[11px] text-stone-500">
+                結果を確認できます。次の問題へ進めます
+              </p>
+            )}
           </div>
         )}
       </section>
@@ -276,15 +284,7 @@ export default function WaitQuizApp() {
                           aria-label={`${tileLabel(tile)}を待ち牌として選択`}
                           aria-pressed={selectedWaits.has(tile)}
                         >
-                          <MahjongTile
-                            tile={tile}
-                            size="sm"
-                            highlight={
-                              answered
-                                ? correctWaitSet.has(tile)
-                                : selectedWaits.has(tile)
-                            }
-                          />
+                          <MahjongTile tile={tile} size="sm" />
                         </button>
                       ))}
                     </div>

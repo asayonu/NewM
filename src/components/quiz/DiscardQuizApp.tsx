@@ -116,6 +116,11 @@ export default function DiscardQuizApp() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-stone-100">
       <section className="z-20 shrink-0 border-b border-stone-200 bg-white px-2 pb-3 pt-5 sm:px-4 sm:pt-6">
+        {hand.length > 0 && !answered && (
+          <p className="mb-2 text-[11px] text-stone-500">
+            受け入れる牌が最大になる牌を1枚選んでください
+          </p>
+        )}
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <p className="shrink-0 text-sm font-medium text-stone-600">問題</p>
@@ -176,11 +181,11 @@ export default function DiscardQuizApp() {
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-[11px] text-stone-500">
-              {answered
-                ? "正解の切り牌と受け入れを確認できます"
-                : "受入最大の切り牌を1枚選んでください"}
-            </p>
+            {answered && (
+              <p className="mt-2 text-[11px] text-stone-500">
+                正解の切り牌と受け入れを確認できます
+              </p>
+            )}
           </>
         )}
       </section>
